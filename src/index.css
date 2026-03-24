@@ -70,11 +70,28 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   background: #1e293b;
   border: 1px solid #334155;
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 12px;
+}
+
+.habit-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.habit-name {
+  font-size: 1rem;
+  word-break: break-word;
+}
+
+.habit-stats {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  opacity: 0.7;
 }
 
 .habit-card.done {

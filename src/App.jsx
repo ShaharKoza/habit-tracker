@@ -175,9 +175,9 @@ function App() {
                   key={habit.id}
                   className={`habit-card ${doneToday ? 'done' : ''}`}
                 >
-                  <div>
-                    <span dir="auto">{habit.name}</span>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.8rem', opacity: 0.7 }}>
+                  <div className="habit-info" dir="auto">
+                    <p className="habit-name">{habit.name}</p>
+                    <p className="habit-stats" dir="ltr">
                       Streak: {streak} day{streak !== 1 ? 's' : ''} &nbsp;·&nbsp; Completion: {rate}%
                     </p>
                   </div>
