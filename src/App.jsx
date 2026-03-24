@@ -33,6 +33,7 @@ function getCompletionRate(completedDates, createdAt) {
 
 function App() {
   const [habitName, setHabitName] = useState('')
+  const [filter, setFilter] = useState('all')
 
   const [habits, setHabits] = useState(() => {
     const saved = localStorage.getItem('habits')
@@ -87,6 +88,12 @@ function App() {
       ? Math.round(habits.reduce((sum, h) => sum + getCompletionRate(h.completedDates, h.createdAt), 0) / habits.length)
       : 0
 
+  const filteredHabits = habits.filter((h) => {
+    if (filter === 'done') return h.completedDates.includes(today)
+    if (filter === 'notDone') return !h.completedDates.includes(today)
+    return true
+  })
+
   return (
     <div className="app">
       <header className="header">
@@ -116,6 +123,7 @@ function App() {
       <main className="container">
         <form className="habit-form" onSubmit={handleAddHabit}>
           <input
+            dir="auto"
             type="text"
             placeholder="Enter a new habit..."
             value={habitName}
@@ -125,12 +133,39 @@ function App() {
         </form>
 
         <section className="habit-list">
-          <h2>Your Habits</h2>
+          <div className="list-header">
+            <h2>Your Habits</h2>
+            <div className="filters">
+              <button
+                type="button"
+                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                onClick={() => setFilter('all')}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${filter === 'done' ? 'active' : ''}`}
+                onClick={() => setFilter('done')}
+              >
+                Completed Today
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${filter === 'notDone' ? 'active' : ''}`}
+                onClick={() => setFilter('notDone')}
+              >
+                Not Completed
+              </button>
+            </div>
+          </div>
 
           {habits.length === 0 ? (
             <p className="empty-message">No habits yet. Add your first one.</p>
+          ) : filteredHabits.length === 0 ? (
+            <p className="empty-message">No habits match this filter.</p>
           ) : (
-            habits.map((habit) => {
+            filteredHabits.map((habit) => {
               const doneToday = habit.completedDates.includes(today)
               const streak = getStreak(habit.completedDates)
               const rate = getCompletionRate(habit.completedDates, habit.createdAt)
@@ -141,7 +176,7 @@ function App() {
                   className={`habit-card ${doneToday ? 'done' : ''}`}
                 >
                   <div>
-                    <span>{habit.name}</span>
+                    <span dir="auto">{habit.name}</span>
                     <p style={{ margin: '4px 0 0', fontSize: '0.8rem', opacity: 0.7 }}>
                       Streak: {streak} day{streak !== 1 ? 's' : ''} &nbsp;·&nbsp; Completion: {rate}%
                     </p>
