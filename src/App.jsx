@@ -1,8 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function App() {
-  const [habitName, setHabitName] = useState('')
-  const [habits, setHabits] = useState([])
+  const [habitName, setHabitName] = useState(() => {
+    const savedHabits = localStorage.getItem('habits')
+    return savedHabits ? JSON.parse(savedHabits) : []
+  })
+
+  const [habits, setHabits] = useState(() => {
+    const savedHabits = localStorage.getItem('habits')
+    return savedHabits ? JSON.parse(savedHabits) : []
+  })
+
+  useEffect(() => {
+    localStorage.setItem('habits', JSON.stringify(habits))
+  }, [habits])
 
   function handleAddHabit(e) {
     e.preventDefault()
@@ -65,11 +76,12 @@ function App() {
                 <span>{habit.name}</span>
 
                 <div className="habit-actions">
-                  <button onClick={() => handleToggleDone(habit.id)}>
+                  <button type="button" onClick={() => handleToggleDone(habit.id)}>
                     {habit.doneToday ? 'Undo' : 'Done Today'}
                   </button>
 
                   <button
+                    type="button"
                     className="delete-btn"
                     onClick={() => handleDeleteHabit(habit.id)}
                   >
