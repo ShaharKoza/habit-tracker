@@ -1,14 +1,42 @@
 import { useEffect, useState } from 'react'
 
+// Returns today's date as a YYYY-MM-DD string
+function getToday() {
+  return new Date().toISOString().split('T')[0]
+}
+
+// Counts how many consecutive days ending today were completed
+function getStreak(completedDates) {
+  let streak = 0
+  const today = new Date()
+
+  while (true) {
+    const dateStr = today.toISOString().split('T')[0]
+    if (completedDates.includes(dateStr)) {
+      streak++
+      today.setDate(today.getDate() - 1)
+    } else {
+      break
+    }
+  }
+
+  return streak
+}
+
+// Calculates completed days / total days since creation, as a percentage
+function getCompletionRate(completedDates, createdAt) {
+  const start = new Date(createdAt)
+  const today = new Date(getToday())
+  const totalDays = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1
+  return Math.round((completedDates.length / totalDays) * 100)
+}
+
 function App() {
-  const [habitName, setHabitName] = useState(() => {
-    const savedHabits = localStorage.getItem('habits')
-    return savedHabits ? JSON.parse(savedHabits) : []
-  })
+  const [habitName, setHabitName] = useState('')
 
   const [habits, setHabits] = useState(() => {
-    const savedHabits = localStorage.getItem('habits')
-    return savedHabits ? JSON.parse(savedHabits) : []
+    const saved = localStorage.getItem('habits')
+    return saved ? JSON.parse(saved) : []
   })
 
   useEffect(() => {
@@ -23,7 +51,8 @@ function App() {
     const newHabit = {
       id: Date.now(),
       name: habitName,
-      doneToday: false,
+      createdAt: getToday(),
+      completedDates: [],
     }
 
     setHabits([...habits, newHabit])
@@ -35,12 +64,18 @@ function App() {
   }
 
   function handleToggleDone(id) {
+    const today = getToday()
     setHabits(
-      habits.map((habit) =>
-        habit.id === id
-          ? { ...habit, doneToday: !habit.doneToday }
-          : habit
-      )
+      habits.map((habit) => {
+        if (habit.id !== id) return habit
+
+        const alreadyDone = habit.completedDates.includes(today)
+        const updatedDates = alreadyDone
+          ? habit.completedDates.filter((d) => d !== today)
+          : [...habit.completedDates, today]
+
+        return { ...habit, completedDates: updatedDates }
+      })
     )
   }
 
@@ -68,28 +103,39 @@ function App() {
           {habits.length === 0 ? (
             <p className="empty-message">No habits yet. Add your first one.</p>
           ) : (
-            habits.map((habit) => (
-              <div
-                key={habit.id}
-                className={`habit-card ${habit.doneToday ? 'done' : ''}`}
-              >
-                <span>{habit.name}</span>
+            habits.map((habit) => {
+              const doneToday = habit.completedDates.includes(getToday())
+              const streak = getStreak(habit.completedDates)
+              const rate = getCompletionRate(habit.completedDates, habit.createdAt)
 
-                <div className="habit-actions">
-                  <button type="button" onClick={() => handleToggleDone(habit.id)}>
-                    {habit.doneToday ? 'Undo' : 'Done Today'}
-                  </button>
+              return (
+                <div
+                  key={habit.id}
+                  className={`habit-card ${doneToday ? 'done' : ''}`}
+                >
+                  <div>
+                    <span>{habit.name}</span>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.8rem', opacity: 0.7 }}>
+                      Streak: {streak} day{streak !== 1 ? 's' : ''} &nbsp;·&nbsp; Completion: {rate}%
+                    </p>
+                  </div>
 
-                  <button
-                    type="button"
-                    className="delete-btn"
-                    onClick={() => handleDeleteHabit(habit.id)}
-                  >
-                    Delete
-                  </button>
+                  <div className="habit-actions">
+                    <button type="button" onClick={() => handleToggleDone(habit.id)}>
+                      {doneToday ? 'Undo' : 'Done Today'}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="delete-btn"
+                      onClick={() => handleDeleteHabit(habit.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           )}
         </section>
       </main>
