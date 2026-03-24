@@ -79,12 +79,39 @@ function App() {
     )
   }
 
+  const today = getToday()
+  const completedToday = habits.filter((h) => h.completedDates.includes(today)).length
+  const bestStreak = habits.length > 0 ? Math.max(...habits.map((h) => getStreak(h.completedDates))) : 0
+  const avgRate =
+    habits.length > 0
+      ? Math.round(habits.reduce((sum, h) => sum + getCompletionRate(h.completedDates, h.createdAt), 0) / habits.length)
+      : 0
+
   return (
     <div className="app">
       <header className="header">
         <h1>Habit Tracker</h1>
         <p>Track your daily habits in a simple way.</p>
       </header>
+
+      <div className="dashboard">
+        <div className="stat-card">
+          <span className="stat-value">{habits.length}</span>
+          <span className="stat-label">Total Habits</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{completedToday}</span>
+          <span className="stat-label">Completed Today</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{bestStreak}</span>
+          <span className="stat-label">Best Streak</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{avgRate}%</span>
+          <span className="stat-label">Avg Completion</span>
+        </div>
+      </div>
 
       <main className="container">
         <form className="habit-form" onSubmit={handleAddHabit}>
@@ -104,7 +131,7 @@ function App() {
             <p className="empty-message">No habits yet. Add your first one.</p>
           ) : (
             habits.map((habit) => {
-              const doneToday = habit.completedDates.includes(getToday())
+              const doneToday = habit.completedDates.includes(today)
               const streak = getStreak(habit.completedDates)
               const rate = getCompletionRate(habit.completedDates, habit.createdAt)
 
